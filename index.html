@@ -122,12 +122,13 @@
             ChartLine: <><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/><circle cx="12" cy="12" r="1"/></>,
             ChartBar: <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
             UpRight: <><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></>,
-            DownRight: <><line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/></>
+            DownRight: <><line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/></>,
+            Stop: <rect x="6" y="6" width="12" height="12" rx="2" />
         };
 
         const TXT = {
-            'zh-TW': { title: '螢幕使用時間', today: '今日使用', h: '小時', m: '分鐘', trend: '使用趨勢', rank: '應用排行', focus: '專注模式', start: '開始', first: '首次拿起', desc: (t) => `已使用 ${t}h，讓眼睛休息一下？`, god: '上帝模式', bg: '背景設置', displayTime: '今日顯示 (時:分)', firstTime: '首次拿起', focusTitle: '沉浸專注', done: '專注完成', giveUp: '結束專注', save: '保存', cancel: '取消', avg: '週平均', more: '更多', chartMode: '圖表切換', vsYesterday: '比昨天', more_time: '多', less_time: '少', mins: '分鐘' },
-            'zh-CN': { title: '屏幕使用时间', today: '今日使用', h: '小时', m: '分钟', trend: '使用趋势', rank: '应用排行', focus: '专注模式', start: '开始', first: '首次拿起', desc: (t) => `已使用 ${t}h，让眼睛休息一下？`, god: '上帝模式', bg: '背景设置', displayTime: '今日显示 (时:分)', firstTime: '首次拿起', focusTitle: '沉浸专注', done: '专注完成', giveUp: '结束专注', save: '保存', cancel: '取消', avg: '周平均', more: '更多', chartMode: '图表切换', vsYesterday: '比昨天', more_time: '多', less_time: '少', mins: '分钟' }
+            'zh-TW': { title: '螢幕使用時間', today: '今日使用', h: '小時', m: '分鐘', trend: '使用趨勢', rank: '應用排行', focus: '專注模式', start: '開始', first: '首次拿起', desc: (t) => `已使用 ${t}h，讓眼睛休息一下？`, god: '上帝模式', bg: '背景設置', displayTime: '今日顯示 (時:分)', firstTime: '首次拿起', focusTitle: '沉浸專注', done: '專注完成', giveUp: '結束專注', save: '保存', cancel: '取消', avg: '週平均', more: '更多', chartMode: '圖表切換', vsYesterday: '比昨天', more_time: '多', less_time: '少', mins: '分鐘', urlPlaceholder: '輸入圖片網址' },
+            'zh-CN': { title: '屏幕使用时间', today: '今日使用', h: '小时', m: '分钟', trend: '使用趋势', rank: '应用排行', focus: '专注模式', start: '开始', first: '首次拿起', desc: (t) => `已使用 ${t}h，让眼睛休息一下？`, god: '上帝模式', bg: '背景设置', displayTime: '今日显示 (时:分)', firstTime: '首次拿起', focusTitle: '沉浸专注', done: '专注完成', giveUp: '结束专注', save: '保存', cancel: '取消', avg: '周平均', more: '更多', chartMode: '图表切换', vsYesterday: '比昨天', more_time: '多', less_time: '少', mins: '分钟', urlPlaceholder: '输入图片网址' }
         };
 
         const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -269,9 +270,22 @@
                             </div>
                         </div>
                         {!completed ? (
-                            <div className="flex items-center gap-10">
-                                <button onClick={()=>{setActive(false);setTime(25*60)}} className="p-4 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-white/70"><Icon p={P.X} size={24}/></button>
-                                <button onClick={()=>setActive(!active)} className="p-8 rounded-[32px] shadow-2xl active:scale-90 transition-all bg-[#D0BCFF] text-[#381E72]"><Icon p={active?P.Pause:P.Play} size={40} className="fill-current"/></button>
+                            <div className="flex items-center gap-8">
+                                {/* MD3 Standard Icon Button (Secondary Action - Stop) */}
+                                <button 
+                                    onClick={()=>{setActive(false);setTime(25*60)}} 
+                                    className="w-16 h-16 rounded-[20px] bg-[#49454F] hover:bg-[#5E5A66] active:scale-95 transition-all text-[#E6E1E5] flex items-center justify-center shadow-lg"
+                                >
+                                    <Icon p={P.Stop} size={24}/>
+                                </button>
+                                
+                                {/* MD3 Large FAB (Primary Action - Play/Pause) */}
+                                <button 
+                                    onClick={()=>setActive(!active)} 
+                                    className="w-24 h-24 rounded-[28px] bg-[#D0BCFF] hover:bg-[#E8DEF8] active:scale-95 transition-all text-[#381E72] shadow-2xl flex items-center justify-center"
+                                >
+                                    <Icon p={active ? P.Pause : P.Play} size={40} className="fill-current"/>
+                                </button>
                             </div>
                         ) : (
                             <button onClick={handleExit} className="px-12 py-4 rounded-full bg-[#D0BCFF] text-[#381E72] font-bold text-lg shadow-lg active:scale-95 transition-all">{t.done}</button>
@@ -284,15 +298,43 @@
 
         // --- Main App ---
         function App() {
-            const [lang, setLang] = useState('zh-TW');
-            const [theme, setTheme] = useState('light');
-            const [chartMode, setChartMode] = useState('area');
-            const [data, setData] = useState([{day:'Mon',h:3.5},{day:'Tue',h:5.2},{day:'Wed',h:4.1},{day:'Thu',h:6.8},{day:'Fri',h:5.5},{day:'Sat',h:8.2},{day:'Sun',h:3.2}]);
-            const [customH, setCustomH] = useState('');
-            const [customM, setCustomM] = useState('');
-            const [pickup, setPickup] = useState('07:12');
-            const [bg, setBg] = useState('');
+            // --- STATE WITH PERSISTENCE (Modified) ---
+            // We use lazy initialization (function inside useState) to read localStorage once on boot.
+            
+            const [lang, setLang] = useState(() => localStorage.getItem('stp_lang') || 'zh-TW');
+            const [theme, setTheme] = useState(() => localStorage.getItem('stp_theme') || 'light');
+            const [chartMode, setChartMode] = useState(() => localStorage.getItem('stp_chartMode') || 'area');
+            
+            const [data, setData] = useState(() => {
+                const saved = localStorage.getItem('stp_data');
+                // Use saved data if exists, otherwise default
+                return saved ? JSON.parse(saved) : [
+                    {day:'Mon',h:3.5},{day:'Tue',h:5.2},{day:'Wed',h:4.1},{day:'Thu',h:6.8},{day:'Fri',h:5.5},{day:'Sat',h:8.2},{day:'Sun',h:3.2}
+                ];
+            });
+            
+            // Custom Time Overrides
+            const [customH, setCustomH] = useState(() => localStorage.getItem('stp_customH') || '');
+            const [customM, setCustomM] = useState(() => localStorage.getItem('stp_customM') || '');
+            
+            // First Pickup Time
+            const [pickup, setPickup] = useState(() => localStorage.getItem('stp_pickup') || '07:12');
+            
+            // Background Image
+            const [bg, setBg] = useState(() => localStorage.getItem('stp_bg') || '');
+            
             const [modal, setModal] = useState(null);
+
+            // --- EFFECTS TO SAVE DATA (Added) ---
+            // Whenever these variables change, we write them to localStorage.
+            useEffect(() => localStorage.setItem('stp_lang', lang), [lang]);
+            useEffect(() => localStorage.setItem('stp_theme', theme), [theme]);
+            useEffect(() => localStorage.setItem('stp_chartMode', chartMode), [chartMode]);
+            useEffect(() => localStorage.setItem('stp_data', JSON.stringify(data)), [data]);
+            useEffect(() => localStorage.setItem('stp_customH', customH), [customH]);
+            useEffect(() => localStorage.setItem('stp_customM', customM), [customM]);
+            useEffect(() => localStorage.setItem('stp_pickup', pickup), [pickup]);
+            useEffect(() => localStorage.setItem('stp_bg', bg), [bg]);
 
             useEffect(() => {
                 if (theme === 'dark') document.documentElement.classList.add('dark');
