@@ -22,7 +22,8 @@
                                 surfaceContainerLow: '#F7F2FA',
                                 surfaceContainer: '#F3EDF7',
                                 surfaceContainerHigh: '#ECE6F0',
-                                outline: '#79747E'
+                                outline: '#79747E',
+                                outlineVariant: '#CAC4D0'
                             },
                             dark: {
                                 primary: '#D0BCFF', onPrimary: '#381E72',
@@ -30,7 +31,8 @@
                                 surface: '#141218', onSurface: '#E6E1E5',
                                 surfaceContainerHigh: '#2B2930',
                                 surfaceContainer: '#211F26',
-                                outline: '#938F99'
+                                outline: '#938F99',
+                                outlineVariant: '#49454F'
                             }
                         }
                     },
@@ -118,12 +120,14 @@
             Youtube: <><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></>,
             Check: <polyline points="20 6 9 17 4 12"/>,
             ChartLine: <><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/><circle cx="12" cy="12" r="1"/></>,
-            ChartBar: <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>
+            ChartBar: <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>,
+            UpRight: <><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></>,
+            DownRight: <><line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/></>
         };
 
         const TXT = {
-            'zh-TW': { title: '螢幕使用', today: '今日使用', h: '小時', m: '分鐘', trend: '使用趨勢', rank: '應用排行', focus: '專注模式', start: '開始專注', first: '首次拿起', desc: (t) => `已使用 ${t}h，讓眼睛休息一下？`, god: '上帝模式', bg: '背景設置', displayTime: '今日顯示 (時:分)', firstTime: '首次拿起', focusTitle: '沉浸專注', done: '專注完成', giveUp: '結束專注', save: '保存', cancel: '取消', avg: '週平均', more: '更多', chartMode: '圖表切換' },
-            'zh-CN': { title: '屏幕使用', today: '今日使用', h: '小时', m: '分钟', trend: '使用趋势', rank: '应用排行', focus: '专注模式', start: '开始专注', first: '首次拿起', desc: (t) => `已使用 ${t}h，让眼睛休息一下？`, god: '上帝模式', bg: '背景设置', displayTime: '今日显示 (时:分)', firstTime: '首次拿起', focusTitle: '沉浸专注', done: '专注完成', giveUp: '结束专注', save: '保存', cancel: '取消', avg: '周平均', more: '更多', chartMode: '图表切换' }
+            'zh-TW': { title: '螢幕使用時間', today: '今日使用', h: '小時', m: '分鐘', trend: '使用趨勢', rank: '應用排行', focus: '專注模式', start: '開始', first: '首次拿起', desc: (t) => `已使用 ${t}h，讓眼睛休息一下？`, god: '上帝模式', bg: '背景設置', displayTime: '今日顯示 (時:分)', firstTime: '首次拿起', focusTitle: '沉浸專注', done: '專注完成', giveUp: '結束專注', save: '保存', cancel: '取消', avg: '週平均', more: '更多', chartMode: '圖表切換', vsYesterday: '比昨天', more_time: '多', less_time: '少', mins: '分鐘' },
+            'zh-CN': { title: '屏幕使用时间', today: '今日使用', h: '小时', m: '分钟', trend: '使用趋势', rank: '应用排行', focus: '专注模式', start: '开始', first: '首次拿起', desc: (t) => `已使用 ${t}h，让眼睛休息一下？`, god: '上帝模式', bg: '背景设置', displayTime: '今日显示 (时:分)', firstTime: '首次拿起', focusTitle: '沉浸专注', done: '专注完成', giveUp: '结束专注', save: '保存', cancel: '取消', avg: '周平均', more: '更多', chartMode: '图表切换', vsYesterday: '比昨天', more_time: '多', less_time: '少', mins: '分钟' }
         };
 
         const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -150,8 +154,8 @@
             const fontWeight = isToday ? 'bold' : '500';
             return (
                 <g transform={`translate(${x},${y})`}>
-                    {isToday && <rect x="-18" y="6" width="36" height="24" rx="8" fill={bgFill} />}
-                    <text x={0} y={0} dy={22} textAnchor="middle" fill={textFill} fontSize={11} fontWeight={fontWeight}>{payload.value}</text>
+                    {isToday && <rect x="-14" y="6" width="28" height="18" rx="4" fill={bgFill} />}
+                    <text x={0} y={0} dy={19} textAnchor="middle" fill={textFill} fontSize={10} fontWeight={fontWeight}>{payload.value}</text>
                 </g>
             );
         };
@@ -170,20 +174,20 @@
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={grid} opacity={0.4} />
                     <XAxis dataKey="label" axisLine={false} tickLine={false} tick={<CustomTick todayIdx={todayIdx} isDark={isDark} />} interval={0} />
                     <YAxis hide={true} domain={[0, 'auto']} />
-                    <Tooltip cursor={{ stroke: primary, strokeWidth: 1, strokeDasharray: '4 4' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', background: isDark ? '#2B2930' : '#FFFFFF', color: isDark ? '#E6E1E5' : '#1D1B20', padding: '10px 14px', fontWeight: 'bold' }} formatter={(value) => [`${value.toFixed(1)} h`, null]} />
+                    <Tooltip cursor={{ stroke: primary, strokeWidth: 1, strokeDasharray: '4 4' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', background: isDark ? '#2B2930' : '#FFFFFF', color: isDark ? '#E6E1E5' : '#1D1B20', padding: '10px 14px', fontWeight: 'bold' }} formatter={(value) => [`${value.toFixed(1)} h`, null]} />
                 </>
             );
 
             // FIX: Ensure data keys are correct and future data is zeroed out for AreaChart
             const lineData = data.map((d, i) => ({
                 label: d.label,
-                hours: i > todayIdx ? 0 : d.hours // Ensure future is 0
+                hours: i > todayIdx ? 0 : d.hours
             }));
 
             return (
                 <ResponsiveContainer width="100%" height="100%">
                     {mode === 'area' ? (
-                        <AreaChart data={lineData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
+                        <AreaChart data={lineData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
                             <defs>
                                 <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor={primary} stopOpacity={0.2}/>
@@ -195,9 +199,9 @@
                             <Area type="monotone" dataKey="hours" stroke={primary} strokeWidth={3} fill="url(#colorGradient)" filter="url(#lineShadow)" animationDuration={1000} />
                         </AreaChart>
                     ) : (
-                        <BarChart data={data} margin={{ top: 20, right: 10, left: 10, bottom: 20 }} barSize={16}>
+                        <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 5 }} barSize={12}>
                             {AxisNode}
-                            <Bar dataKey="hours" radius={[8, 8, 8, 8]} animationDuration={1000}>
+                            <Bar dataKey="hours" radius={[6, 6, 6, 6]} animationDuration={1000}>
                                 {data.map((entry, index) => {
                                     let fill = inactiveBar;
                                     if (index === todayIdx) fill = activeBar;
@@ -300,18 +304,22 @@
             const todayIdx = jsDay === 0 ? 6 : jsDay - 1; 
             const todayLabel = DAYS[todayIdx];
             
-            // FIX: Using correct property name 'd.h' for display data mapping
             const displayData = data.map((d, i) => ({
                 label: DAYS[i],
                 hours: i > todayIdx ? 0 : d.h
             }));
 
             const todayVal = data[todayIdx]?.h || 0;
-            const displayH = customH !== '' ? parseInt(customH) : Math.floor(todayVal);
-            const displayM = customM !== '' ? parseInt(customM) : Math.round((todayVal % 1) * 60);
+            const displayH = customH !== '' ? parseInt(customH, 10) : Math.floor(todayVal);
+            const displayM = customM !== '' ? parseInt(customM, 10) : Math.round((todayVal % 1) * 60);
             const totalDisplayHours = displayH + (displayM / 60);
 
-            const weeklyAvg = data.reduce((acc, curr) => acc + curr.h, 0) / 7;
+            // Calculate diff from yesterday
+            const yesterdayIdx = (todayIdx - 1 + 7) % 7;
+            const yesterdayVal = data[yesterdayIdx]?.h || 0;
+            const diffHoursVal = totalDisplayHours - yesterdayVal;
+            const diffMins = Math.round(Math.abs(diffHoursVal) * 60);
+            const isMore = diffHoursVal >= 0;
 
             const updateData = (idx, val) => {
                 const newData = [...data];
@@ -351,67 +359,67 @@
                         </div>
                     </nav>
 
-                    <main className="px-4 py-6 space-y-6 max-w-md mx-auto">
-                        {/* 1. Hero Card - Simple Row Layout */}
-                        <div className="rounded-[28px] p-8 bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh relative overflow-hidden transition-colors duration-500 shadow-sm group">
-                            <div className="relative z-10 flex flex-col items-center">
-                                <div className="flex items-center gap-2 mb-2 text-sm font-bold tracking-widest text-sys-light-primary dark:text-sys-dark-primary uppercase opacity-80">
-                                    <Icon p={P.Smartphone} size={18} /> {t.today}
+                    <main className="px-4 py-4 space-y-3 max-w-md mx-auto">
+                        {/* 1. Hero Card - Left Align, Compact */}
+                        <div className="rounded-[24px] p-4 bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh relative overflow-hidden transition-colors duration-500 shadow-sm group">
+                            <div className="relative z-10 flex flex-col items-start pl-1">
+                                <div className="flex items-center gap-2 mb-1 text-xs font-bold tracking-widest text-sys-light-primary dark:text-sys-dark-primary uppercase opacity-80">
+                                    <Icon p={P.Smartphone} size={16} /> {t.today}
                                 </div>
-                                <div className="flex flex-row items-baseline justify-center w-full">
-                                    <span className="text-6xl font-light tracking-tighter tabular-nums text-sys-light-onSurface dark:text-sys-dark-onSurface">
+                                <div className="flex flex-row items-baseline w-full justify-start">
+                                    <span className="text-4xl font-bold tracking-tighter tabular-nums text-sys-light-onSurface dark:text-sys-dark-onSurface">
                                         {displayH}
                                     </span>
-                                    <span className="text-lg font-medium opacity-60 ml-1 mr-3 text-sys-light-outline dark:text-sys-dark-outline">{t.h}</span>
+                                    <span className="text-sm font-medium opacity-60 ml-1 mr-3 text-sys-light-outline dark:text-sys-dark-outline">{t.h}</span>
                                     
-                                    <span className="text-6xl font-light tracking-tighter tabular-nums text-sys-light-onSurface dark:text-sys-dark-onSurface">
+                                    <span className="text-4xl font-bold tracking-tighter tabular-nums text-sys-light-onSurface dark:text-sys-dark-onSurface">
                                         {displayM.toString().padStart(2, '0')}
                                     </span>
-                                    <span className="text-lg font-medium opacity-60 ml-1 text-sys-light-outline dark:text-sys-dark-outline">{t.m}</span>
+                                    <span className="text-sm font-medium opacity-60 ml-1 text-sys-light-outline dark:text-sys-dark-outline">{t.m}</span>
                                 </div>
-                                <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer text-sys-light-onSurfaceVariant dark:text-sys-dark-onSurfaceVariant text-sm font-medium border border-sys-light-outline/10 dark:border-sys-dark-outline/10">
-                                    <span className={totalDisplayHours > weeklyAvg ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}>{totalDisplayHours > weeklyAvg ? '↑' : '↓'}</span>
-                                    {t.avg} {weeklyAvg.toFixed(1)}h
+                                <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-sys-light-outline dark:text-sys-dark-outline opacity-80">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${isMore ? 'bg-orange-500' : 'bg-green-500'}`}></div>
+                                    <span>{t.vsYesterday} {isMore ? t.more_time : t.less_time} {diffMins} {t.mins}</span>
                                 </div>
                             </div>
-                            <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-sys-light-primaryContainer dark:bg-sys-dark-primaryContainer blur-[100px] opacity-50 pointer-events-none"></div>
+                            <div className="absolute -right-24 -top-24 w-64 h-64 rounded-full bg-sys-light-primaryContainer dark:bg-sys-dark-primaryContainer blur-[80px] opacity-30 pointer-events-none"></div>
                         </div>
 
-                        {/* 2. Chart Card */}
-                        <div className="rounded-[28px] p-6 bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer shadow-sm transition-colors duration-500">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-lg font-bold text-sys-light-onSurface dark:text-sys-dark-onSurface">{t.trend}</h2>
+                        {/* 2. Chart Card - Compact */}
+                        <div className="rounded-[24px] p-5 bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer shadow-sm transition-colors duration-500">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-base font-bold text-sys-light-onSurface dark:text-sys-dark-onSurface">{t.trend}</h2>
                                 <button 
                                     onClick={() => setChartMode(chartMode === 'area' ? 'bar' : 'area')} 
-                                    className="p-2.5 rounded-full bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh text-sys-light-primary dark:text-sys-dark-primary active:scale-90 transition-transform"
+                                    className="p-2 rounded-full bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh text-sys-light-primary dark:text-sys-dark-primary active:scale-90 transition-transform"
                                 >
-                                    <Icon p={chartMode === 'area' ? P.ChartBar : P.ChartLine} size={20} />
+                                    <Icon p={chartMode === 'area' ? P.ChartBar : P.ChartLine} size={18} />
                                 </button>
                             </div>
-                            <div style={{ height: 350, width: '100%' }}>
+                            <div style={{ height: 200, width: '100%' }}>
                                 <DynamicChart data={displayData} theme={theme} mode={chartMode} todayIdx={todayIdx} />
                             </div>
                         </div>
 
                         {/* 3. Apps */}
-                        <div className="grid grid-cols-1 gap-4">
-                            <div className="rounded-[28px] p-6 bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer shadow-sm transition-colors duration-500">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-lg font-bold text-sys-light-onSurface dark:text-sys-dark-onSurface">{t.rank}</h2>
-                                    <span className="text-sm font-bold text-sys-light-primary dark:text-sys-dark-primary opacity-80">{t.more}</span>
+                        <div className="grid grid-cols-1 gap-3">
+                            <div className="rounded-[24px] p-5 bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer shadow-sm transition-colors duration-500">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-base font-bold text-sys-light-onSurface dark:text-sys-dark-onSurface">{t.rank}</h2>
+                                    <span className="text-xs font-bold text-sys-light-primary dark:text-sys-dark-primary opacity-80">{t.more}</span>
                                 </div>
-                                <div className="space-y-6">
+                                <div className="space-y-4">
                                     {apps.map((app, i) => (
-                                        <div key={i} className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-[18px] flex items-center justify-center text-white shadow-sm shrink-0" style={{background: app.color}}>
-                                                <Icon p={app.icon} size={24} />
+                                        <div key={i} className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-[14px] flex items-center justify-center text-white shadow-sm shrink-0" style={{background: app.color}}>
+                                                <Icon p={app.icon} size={20} />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex justify-between mb-2 text-sys-light-onSurface dark:text-sys-dark-onSurface">
-                                                    <span className="font-medium">{app.name}</span>
-                                                    <span className="text-sm font-mono opacity-60">{(totalDisplayHours * app.p).toFixed(1)}h</span>
+                                                <div className="flex justify-between mb-1.5 text-sys-light-onSurface dark:text-sys-dark-onSurface">
+                                                    <span className="font-medium text-sm">{app.name}</span>
+                                                    <span className="text-xs font-mono opacity-60">{(totalDisplayHours * app.p).toFixed(1)}h</span>
                                                 </div>
-                                                <div className="h-2 rounded-full bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh overflow-hidden">
+                                                <div className="h-1.5 rounded-full bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh overflow-hidden">
                                                     <div className="h-full rounded-full transition-all duration-1000" style={{width:`${(totalDisplayHours*app.p/totalDisplayHours)*100}%`, background: app.color}}></div>
                                                 </div>
                                             </div>
@@ -420,26 +428,26 @@
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div {...pickupPress} className="rounded-[28px] p-5 h-48 bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer relative overflow-hidden flex flex-col justify-between active:scale-95 transition-all duration-200">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div {...pickupPress} className="rounded-[24px] p-5 h-36 bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer relative overflow-hidden flex flex-col justify-between active:scale-95 transition-all duration-200">
                                     {bg && <div className="absolute inset-0 bg-cover bg-center opacity-50" style={{backgroundImage: `url(${bg})`}}></div>}
                                     <div className="relative z-10 text-sys-light-onSurface dark:text-sys-dark-onSurface">
                                         <div className="text-xs font-bold uppercase opacity-60 mb-1">{t.first}</div>
-                                        <div className="text-3xl font-bold tracking-tight font-mono">{pickup}</div>
+                                        <div className="text-2xl font-bold tracking-tight font-mono">{pickup}</div>
                                     </div>
-                                    <div className="relative z-10 self-end p-3 rounded-full bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh text-pink-500">
-                                        <Icon p={P.Clock} size={24} />
+                                    <div className="relative z-10 self-end p-2.5 rounded-full bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh text-pink-500">
+                                        <Icon p={P.Clock} size={20} />
                                     </div>
                                 </div>
-                                <div onClick={() => setModal('focus')} className="rounded-[28px] p-5 h-48 bg-sys-light-primary dark:bg-sys-dark-primary text-sys-light-onPrimary dark:text-sys-dark-onPrimary relative overflow-hidden flex flex-col justify-between active:scale-95 transition-all duration-200 shadow-lg cursor-pointer group">
+                                <div onClick={() => setModal('focus')} className="rounded-[24px] p-5 h-36 bg-sys-light-primary dark:bg-sys-dark-primary text-sys-light-onPrimary dark:text-sys-dark-onPrimary relative overflow-hidden flex flex-col justify-between active:scale-95 transition-all duration-200 shadow-lg cursor-pointer group">
                                     <div className="relative z-10">
                                         <div className="text-xs font-bold uppercase opacity-80 mb-1">{t.focus}</div>
-                                        <div className="text-xs opacity-90 leading-relaxed font-medium">{t.desc(totalDisplayHours.toFixed(1))}</div>
+                                        <div className="text-xs opacity-90 leading-relaxed font-medium line-clamp-2">{t.desc(totalDisplayHours.toFixed(1))}</div>
                                     </div>
                                     <div className="relative z-10 self-start">
-                                        <div className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-xs font-bold">{t.start}</div>
+                                        <div className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-xs font-bold">{t.start}</div>
                                     </div>
-                                    <div className="absolute -right-6 -bottom-6 opacity-20 group-hover:scale-110 transition-transform duration-500"><Icon p={P.Zap} size={120} /></div>
+                                    <div className="absolute -right-5 -bottom-5 opacity-20 group-hover:scale-110 transition-transform duration-500"><Icon p={P.Zap} size={100} /></div>
                                 </div>
                             </div>
                         </div>
@@ -500,5 +508,4 @@
         root.render(<App />);
     </script>
 </body>
-
 </html>
