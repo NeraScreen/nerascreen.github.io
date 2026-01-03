@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Screen Time Pro</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Roboto', 'PingFang SC', '-apple-system', 'sans-serif'] },
+                    colors: {
+                        sys: {
+                            light: {
+                                primary: '#6750A4', onPrimary: '#FFFFFF',
+                                primaryContainer: '#EADDFF', onPrimaryContainer: '#21005D',
+                                surface: '#FDF8FD', onSurface: '#1D1B20',
+                                surfaceContainerLow: '#F7F2FA',
+                                surfaceContainer: '#F3EDF7',
+                                surfaceContainerHigh: '#ECE6F0',
+                                outline: '#79747E'
+                            },
+                            dark: {
+                                primary: '#D0BCFF', onPrimary: '#381E72',
+                                primaryContainer: '#4F378B', onPrimaryContainer: '#EADDFF',
+                                surface: '#141218', onSurface: '#E6E1E5',
+                                surfaceContainerHigh: '#2B2930',
+                                surfaceContainer: '#211F26',
+                                outline: '#938F99'
+                            }
+                        }
+                    },
+                    animation: {
+                        'fade-scale': 'fadeScale 0.3s cubic-bezier(0.2, 0, 0, 1)',
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.2, 0, 0, 1)',
+                    },
+                    keyframes: {
+                        fadeScale: {
+                            '0%': { opacity: '0', transform: 'scale(0.98)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(100px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        body { 
+            -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; user-select: none; -webkit-user-select: none;
+            background-color: #FDF8FD; transition: background-color 0.5s;
+        }
+        .dark body { background-color: #141218; }
+        ::-webkit-scrollbar { width: 0; height: 0; }
+        
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; height: 24px; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%;
+            background: #6750A4; margin-top: -8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: transform 0.1s;
+        }
+        .dark input[type=range]::-webkit-slider-thumb { background: #D0BCFF; }
+        input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; background: rgba(120, 120, 128, 0.2); border-radius: 2px;
+        }
+        .dark input[type=range]::-webkit-slider-runnable-track { background: rgba(255, 255, 255, 0.1); }
+
+        .focus-breathing { animation: focusBreath 5s ease-in-out infinite; }
+        @keyframes focusBreath { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.1); } }
+    </style>
+
+    <!-- Libraries -->
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.0/Recharts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.10/babel.min.js"></script>
+</head>
+<body class="text-sys-light-onSurface dark:text-sys-dark-onSurface transition-colors duration-500">
+    
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        const RechartsLib = window.Recharts || {};
+        const { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Defs, LinearGradient, Cell } = RechartsLib;
+
+        // --- Icons ---
+        const Icon = ({ p, size=24, className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {p}
+            </svg>
+        );
+        const P = {
+            Settings: <><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>,
+            Smartphone: <><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></>,
+            Zap: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>,
+            Globe: <><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></>,
+            Clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+            Edit: <><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></>,
+            X: <><path d="M18 6 6 18"/><path d="m6 6 18 18"/></>,
+            Theme: <><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></>,
+            Play: <polygon points="5 3 19 12 5 21 5 3"/>,
+            Pause: <><rect width="4" height="16" x="6" y="4"/><rect width="4" height="16" x="14" y="4"/></>,
+            LogOut: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>,
+            Timer: <><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></>,
+            Msg: <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>,
+            Bili: <><rect x="2" y="7" width="20" height="15" rx="2" ry="2" /><polyline points="17 2 12 7 7 2" /></>,
+            Music: <><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></>,
+            Youtube: <><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></>,
+            Check: <polyline points="20 6 9 17 4 12"/>,
+            ChartLine: <><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/><circle cx="12" cy="12" r="1"/></>,
+            ChartBar: <><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></>
+        };
+
+        const TXT = {
+            'zh-TW': { title: '螢幕使用', today: '今日使用', h: '小時', m: '分鐘', trend: '使用趨勢', rank: '應用排行', focus: '專注模式', start: '開始專注', first: '首次拿起', desc: (t) => `已使用 ${t}h，讓眼睛休息一下？`, god: '上帝模式', bg: '背景設置', displayTime: '今日顯示 (時:分)', firstTime: '首次拿起', focusTitle: '沉浸專注', done: '專注完成', giveUp: '結束專注', save: '保存', cancel: '取消', avg: '週平均', more: '更多', chartMode: '圖表切換' },
+            'zh-CN': { title: '屏幕使用', today: '今日使用', h: '小时', m: '分钟', trend: '使用趋势', rank: '应用排行', focus: '专注模式', start: '开始专注', first: '首次拿起', desc: (t) => `已使用 ${t}h，让眼睛休息一下？`, god: '上帝模式', bg: '背景设置', displayTime: '今日显示 (时:分)', firstTime: '首次拿起', focusTitle: '沉浸专注', done: '专注完成', giveUp: '结束专注', save: '保存', cancel: '取消', avg: '周平均', more: '更多', chartMode: '图表切换' }
+        };
+
+        const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+        const useLongPress = (callback, ms = 600) => {
+            const [start, setStart] = useState(false);
+            const timerRef = useRef(null);
+            useEffect(() => {
+                if (start) {
+                    timerRef.current = setTimeout(() => { callback(); setStart(false); if(navigator.vibrate) navigator.vibrate(50); }, ms);
+                } else { clearTimeout(timerRef.current); }
+                return () => clearTimeout(timerRef.current);
+            }, [start]);
+            return {
+                onMouseDown: () => setStart(true), onMouseUp: () => setStart(false), onMouseLeave: () => setStart(false),
+                onTouchStart: () => setStart(true), onTouchEnd: () => setStart(false), onContextMenu: (e) => e.preventDefault() 
+            };
+        };
+
+        const CustomTick = ({ x, y, payload, todayIdx, index, isDark }) => {
+            const isToday = index === todayIdx;
+            const bgFill = isToday ? (isDark ? '#4F378B' : '#E8DEF8') : 'transparent';
+            const textFill = isToday ? (isDark ? '#EADDFF' : '#1D192B') : (isDark ? '#CAC4D0' : '#79747E');
+            const fontWeight = isToday ? 'bold' : '500';
+            return (
+                <g transform={`translate(${x},${y})`}>
+                    {isToday && <rect x="-18" y="6" width="36" height="24" rx="8" fill={bgFill} />}
+                    <text x={0} y={0} dy={22} textAnchor="middle" fill={textFill} fontSize={11} fontWeight={fontWeight}>{payload.value}</text>
+                </g>
+            );
+        };
+
+        const DynamicChart = ({ data, theme, mode, todayIdx }) => {
+            if (!AreaChart || !BarChart) return <div className="h-full flex items-center justify-center text-sm opacity-50">Chart Loading...</div>;
+            const isDark = theme === 'dark';
+            const primary = isDark ? '#D0BCFF' : '#6750A4'; 
+            const grid = isDark ? '#49454F' : '#E7E0EC';
+            const activeBar = isDark ? '#D0BCFF' : '#6750A4';
+            const inactiveBar = isDark ? '#4A4458' : '#E7E0EC';
+            const futureBar = 'transparent';
+
+            const AxisNode = (
+                <>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={grid} opacity={0.4} />
+                    <XAxis dataKey="label" axisLine={false} tickLine={false} tick={<CustomTick todayIdx={todayIdx} isDark={isDark} />} interval={0} />
+                    <YAxis hide={true} domain={[0, 'auto']} />
+                    <Tooltip cursor={{ stroke: primary, strokeWidth: 1, strokeDasharray: '4 4' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', background: isDark ? '#2B2930' : '#FFFFFF', color: isDark ? '#E6E1E5' : '#1D1B20', padding: '10px 14px', fontWeight: 'bold' }} formatter={(value) => [`${value.toFixed(1)} h`, null]} />
+                </>
+            );
+
+            // FIX: Ensure data keys are correct and future data is zeroed out for AreaChart
+            const lineData = data.map((d, i) => ({
+                label: d.label,
+                hours: i > todayIdx ? 0 : d.hours // Ensure future is 0
+            }));
+
+            return (
+                <ResponsiveContainer width="100%" height="100%">
+                    {mode === 'area' ? (
+                        <AreaChart data={lineData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
+                            <defs>
+                                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={primary} stopOpacity={0.2}/>
+                                    <stop offset="95%" stopColor={primary} stopOpacity={0}/>
+                                </linearGradient>
+                                <filter id="lineShadow" height="130%"><feDropShadow dx="0" dy="4" stdDeviation="4" floodColor={primary} floodOpacity="0.3"/></filter>
+                            </defs>
+                            {AxisNode}
+                            <Area type="monotone" dataKey="hours" stroke={primary} strokeWidth={3} fill="url(#colorGradient)" filter="url(#lineShadow)" animationDuration={1000} />
+                        </AreaChart>
+                    ) : (
+                        <BarChart data={data} margin={{ top: 20, right: 10, left: 10, bottom: 20 }} barSize={16}>
+                            {AxisNode}
+                            <Bar dataKey="hours" radius={[8, 8, 8, 8]} animationDuration={1000}>
+                                {data.map((entry, index) => {
+                                    let fill = inactiveBar;
+                                    if (index === todayIdx) fill = activeBar;
+                                    if (index > todayIdx) fill = futureBar;
+                                    return <Cell key={`cell-${index}`} fill={fill} />;
+                                })}
+                            </Bar>
+                        </BarChart>
+                    )}
+                </ResponsiveContainer>
+            );
+        };
+
+        const FocusMode = ({ isOpen, onClose, lang, theme, displayUsage }) => {
+            const t = TXT[lang];
+            const [time, setTime] = useState(25 * 60);
+            const [active, setActive] = useState(false);
+            const [completed, setCompleted] = useState(false);
+            const [isVisible, setIsVisible] = useState(false); 
+
+            useEffect(() => {
+                if (isOpen) {
+                    setIsVisible(true);
+                    setTime(25 * 60); 
+                    setActive(true); 
+                    setCompleted(false);
+                }
+            }, [isOpen]);
+
+            useEffect(() => {
+                let i;
+                if (active && time > 0) i = setInterval(() => setTime(t => t - 1), 1000);
+                else if (time === 0) { setActive(false); setCompleted(true); }
+                return () => clearInterval(i);
+            }, [active, time]);
+
+            const handleExit = () => {
+                setIsVisible(false);
+                setTimeout(onClose, 400);
+            };
+
+            if (!isOpen && !isVisible) return null;
+
+            const fmt = (s) => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+            
+            return (
+                <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-500 ease-in-out ${isVisible ? 'opacity-100 bg-opacity-95 backdrop-blur-3xl' : 'opacity-0 bg-opacity-0 backdrop-blur-none'} ${theme === 'dark' ? 'bg-[#000000]' : 'bg-[#1D1B20]'} text-white`}>
+                    <div className={`absolute inset-0 overflow-hidden pointer-events-none transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+                        <div className={`absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[120px] opacity-30 focus-breathing ${theme==='dark'?'bg-[#D0BCFF]':'bg-[#6750A4]'}`}></div>
+                        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-pink-500 blur-[120px] opacity-20 focus-breathing" style={{animationDelay:'1s'}}></div>
+                    </div>
+
+                    <div className={`relative z-10 w-full max-w-sm px-8 flex flex-col items-center transition-all duration-500 delay-100 transform ${isVisible ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-10 opacity-0'}`}>
+                        <div className="mb-12 text-center">
+                            <h2 className="text-3xl font-bold mb-2 tracking-tight">{completed ? t.done : t.focusTitle}</h2>
+                            <p className="text-white/60 text-sm">{t.desc(displayUsage)}</p>
+                        </div>
+                        <div className="relative w-72 h-72 mb-16 flex items-center justify-center">
+                            <svg className="w-full h-full transform -rotate-90">
+                                <circle cx="144" cy="144" r="130" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/10" />
+                                <circle cx="144" cy="144" r="130" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={2*Math.PI*130} strokeDashoffset={2*Math.PI*130*(1-time/(25*60))} className={`transition-all duration-1000 ease-linear text-[#D0BCFF]`} strokeLinecap="round"/>
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-7xl font-mono font-bold tracking-tighter tabular-nums text-white">{completed ? <Icon p={P.Check} size={64}/> : fmt(time)}</span>
+                            </div>
+                        </div>
+                        {!completed ? (
+                            <div className="flex items-center gap-10">
+                                <button onClick={()=>{setActive(false);setTime(25*60)}} className="p-4 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-white/70"><Icon p={P.X} size={24}/></button>
+                                <button onClick={()=>setActive(!active)} className="p-8 rounded-[32px] shadow-2xl active:scale-90 transition-all bg-[#D0BCFF] text-[#381E72]"><Icon p={active?P.Pause:P.Play} size={40} className="fill-current"/></button>
+                            </div>
+                        ) : (
+                            <button onClick={handleExit} className="px-12 py-4 rounded-full bg-[#D0BCFF] text-[#381E72] font-bold text-lg shadow-lg active:scale-95 transition-all">{t.done}</button>
+                        )}
+                        <button onClick={handleExit} className="mt-12 text-sm text-white/40 flex items-center gap-2 hover:text-white/80 transition-colors"><Icon p={P.LogOut} size={16}/> {t.giveUp}</button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main App ---
+        function App() {
+            const [lang, setLang] = useState('zh-TW');
+            const [theme, setTheme] = useState('light');
+            const [chartMode, setChartMode] = useState('area');
+            const [data, setData] = useState([{day:'Mon',h:3.5},{day:'Tue',h:5.2},{day:'Wed',h:4.1},{day:'Thu',h:6.8},{day:'Fri',h:5.5},{day:'Sat',h:8.2},{day:'Sun',h:3.2}]);
+            const [customH, setCustomH] = useState('');
+            const [customM, setCustomM] = useState('');
+            const [pickup, setPickup] = useState('07:12');
+            const [bg, setBg] = useState('');
+            const [modal, setModal] = useState(null);
+
+            useEffect(() => {
+                if (theme === 'dark') document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            }, [theme]);
+
+            const t = TXT[lang];
+            const jsDay = new Date().getDay();
+            const todayIdx = jsDay === 0 ? 6 : jsDay - 1; 
+            const todayLabel = DAYS[todayIdx];
+            
+            // FIX: Using correct property name 'd.h' for display data mapping
+            const displayData = data.map((d, i) => ({
+                label: DAYS[i],
+                hours: i > todayIdx ? 0 : d.h
+            }));
+
+            const todayVal = data[todayIdx]?.h || 0;
+            const displayH = customH !== '' ? parseInt(customH) : Math.floor(todayVal);
+            const displayM = customM !== '' ? parseInt(customM) : Math.round((todayVal % 1) * 60);
+            const totalDisplayHours = displayH + (displayM / 60);
+
+            const weeklyAvg = data.reduce((acc, curr) => acc + curr.h, 0) / 7;
+
+            const updateData = (idx, val) => {
+                const newData = [...data];
+                newData[idx].h = Math.min(24, Math.max(0, val));
+                setData(newData);
+            };
+
+            const settingPress = useLongPress(() => setModal('god'));
+            const pickupPress = useLongPress(() => setModal('img'));
+
+            const apps = [
+                { name: 'WeChat', color: '#07C160', icon: P.Msg, p: 0.4 },
+                { name: 'Bilibili', color: '#FB7299', icon: P.Bili, p: 0.25 },
+                { name: 'YouTube', color: '#FF0000', icon: P.Youtube, p: 0.2 },
+                { name: '網易雲音樂', color: '#C20C0C', icon: P.Music, p: 0.1 }
+            ];
+
+            return (
+                <div className="min-h-screen pb-12 transition-colors duration-500 bg-sys-light-surface dark:bg-sys-dark-surface">
+                    {/* Header */}
+                    <nav className="sticky top-0 z-40 px-6 py-4 flex justify-between items-center backdrop-blur-xl bg-sys-light-surface/80 dark:bg-sys-dark-surface/80 border-b border-sys-light-outline/10 dark:border-sys-dark-outline/10">
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setLang(lang === 'zh-TW' ? 'zh-CN' : 'zh-TW')} className="p-2.5 rounded-full hover:bg-sys-light-surfaceContainerHigh dark:hover:bg-sys-dark-surfaceContainerHigh transition-colors text-sys-light-outline dark:text-sys-dark-outline active:scale-95">
+                                <Icon p={P.Globe} size={22} />
+                            </button>
+                        </div>
+                        <h1 className="text-xl font-bold tracking-tight text-sys-light-onSurface dark:text-sys-dark-onSurface absolute left-1/2 -translate-x-1/2">
+                            {t.title}
+                        </h1>
+                        <div className="flex gap-2">
+                            <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} className="p-2.5 rounded-full hover:bg-sys-light-surfaceContainerHigh dark:hover:bg-sys-dark-surfaceContainerHigh transition-colors text-sys-light-outline dark:text-sys-dark-outline active:scale-95">
+                                <Icon p={P.Theme} size={22} />
+                            </button>
+                            <button {...settingPress} className="p-2.5 rounded-full hover:bg-sys-light-surfaceContainerHigh dark:hover:bg-sys-dark-surfaceContainerHigh transition-all active:scale-90 duration-200 text-sys-light-outline dark:text-sys-dark-outline">
+                                <Icon p={P.Settings} size={22} />
+                            </button>
+                        </div>
+                    </nav>
+
+                    <main className="px-4 py-6 space-y-6 max-w-md mx-auto">
+                        {/* 1. Hero Card - Simple Row Layout */}
+                        <div className="rounded-[28px] p-8 bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh relative overflow-hidden transition-colors duration-500 shadow-sm group">
+                            <div className="relative z-10 flex flex-col items-center">
+                                <div className="flex items-center gap-2 mb-2 text-sm font-bold tracking-widest text-sys-light-primary dark:text-sys-dark-primary uppercase opacity-80">
+                                    <Icon p={P.Smartphone} size={18} /> {t.today}
+                                </div>
+                                <div className="flex flex-row items-baseline justify-center w-full">
+                                    <span className="text-6xl font-light tracking-tighter tabular-nums text-sys-light-onSurface dark:text-sys-dark-onSurface">
+                                        {displayH}
+                                    </span>
+                                    <span className="text-lg font-medium opacity-60 ml-1 mr-3 text-sys-light-outline dark:text-sys-dark-outline">{t.h}</span>
+                                    
+                                    <span className="text-6xl font-light tracking-tighter tabular-nums text-sys-light-onSurface dark:text-sys-dark-onSurface">
+                                        {displayM.toString().padStart(2, '0')}
+                                    </span>
+                                    <span className="text-lg font-medium opacity-60 ml-1 text-sys-light-outline dark:text-sys-dark-outline">{t.m}</span>
+                                </div>
+                                <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer text-sys-light-onSurfaceVariant dark:text-sys-dark-onSurfaceVariant text-sm font-medium border border-sys-light-outline/10 dark:border-sys-dark-outline/10">
+                                    <span className={totalDisplayHours > weeklyAvg ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}>{totalDisplayHours > weeklyAvg ? '↑' : '↓'}</span>
+                                    {t.avg} {weeklyAvg.toFixed(1)}h
+                                </div>
+                            </div>
+                            <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-sys-light-primaryContainer dark:bg-sys-dark-primaryContainer blur-[100px] opacity-50 pointer-events-none"></div>
+                        </div>
+
+                        {/* 2. Chart Card */}
+                        <div className="rounded-[28px] p-6 bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer shadow-sm transition-colors duration-500">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-lg font-bold text-sys-light-onSurface dark:text-sys-dark-onSurface">{t.trend}</h2>
+                                <button 
+                                    onClick={() => setChartMode(chartMode === 'area' ? 'bar' : 'area')} 
+                                    className="p-2.5 rounded-full bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh text-sys-light-primary dark:text-sys-dark-primary active:scale-90 transition-transform"
+                                >
+                                    <Icon p={chartMode === 'area' ? P.ChartBar : P.ChartLine} size={20} />
+                                </button>
+                            </div>
+                            <div style={{ height: 350, width: '100%' }}>
+                                <DynamicChart data={displayData} theme={theme} mode={chartMode} todayIdx={todayIdx} />
+                            </div>
+                        </div>
+
+                        {/* 3. Apps */}
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="rounded-[28px] p-6 bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer shadow-sm transition-colors duration-500">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-lg font-bold text-sys-light-onSurface dark:text-sys-dark-onSurface">{t.rank}</h2>
+                                    <span className="text-sm font-bold text-sys-light-primary dark:text-sys-dark-primary opacity-80">{t.more}</span>
+                                </div>
+                                <div className="space-y-6">
+                                    {apps.map((app, i) => (
+                                        <div key={i} className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-[18px] flex items-center justify-center text-white shadow-sm shrink-0" style={{background: app.color}}>
+                                                <Icon p={app.icon} size={24} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between mb-2 text-sys-light-onSurface dark:text-sys-dark-onSurface">
+                                                    <span className="font-medium">{app.name}</span>
+                                                    <span className="text-sm font-mono opacity-60">{(totalDisplayHours * app.p).toFixed(1)}h</span>
+                                                </div>
+                                                <div className="h-2 rounded-full bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh overflow-hidden">
+                                                    <div className="h-full rounded-full transition-all duration-1000" style={{width:`${(totalDisplayHours*app.p/totalDisplayHours)*100}%`, background: app.color}}></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div {...pickupPress} className="rounded-[28px] p-5 h-48 bg-sys-light-surfaceContainer dark:bg-sys-dark-surfaceContainer relative overflow-hidden flex flex-col justify-between active:scale-95 transition-all duration-200">
+                                    {bg && <div className="absolute inset-0 bg-cover bg-center opacity-50" style={{backgroundImage: `url(${bg})`}}></div>}
+                                    <div className="relative z-10 text-sys-light-onSurface dark:text-sys-dark-onSurface">
+                                        <div className="text-xs font-bold uppercase opacity-60 mb-1">{t.first}</div>
+                                        <div className="text-3xl font-bold tracking-tight font-mono">{pickup}</div>
+                                    </div>
+                                    <div className="relative z-10 self-end p-3 rounded-full bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh text-pink-500">
+                                        <Icon p={P.Clock} size={24} />
+                                    </div>
+                                </div>
+                                <div onClick={() => setModal('focus')} className="rounded-[28px] p-5 h-48 bg-sys-light-primary dark:bg-sys-dark-primary text-sys-light-onPrimary dark:text-sys-dark-onPrimary relative overflow-hidden flex flex-col justify-between active:scale-95 transition-all duration-200 shadow-lg cursor-pointer group">
+                                    <div className="relative z-10">
+                                        <div className="text-xs font-bold uppercase opacity-80 mb-1">{t.focus}</div>
+                                        <div className="text-xs opacity-90 leading-relaxed font-medium">{t.desc(totalDisplayHours.toFixed(1))}</div>
+                                    </div>
+                                    <div className="relative z-10 self-start">
+                                        <div className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-xs font-bold">{t.start}</div>
+                                    </div>
+                                    <div className="absolute -right-6 -bottom-6 opacity-20 group-hover:scale-110 transition-transform duration-500"><Icon p={P.Zap} size={120} /></div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Modals */}
+                    {modal && (
+                        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setModal(null)}>
+                            {modal === 'focus' ? (
+                                <FocusMode isOpen={true} onClose={() => setModal(null)} lang={lang} theme={theme} displayUsage={totalDisplayHours.toFixed(1)} />
+                            ) : (
+                                <div className="w-full max-w-md bg-sys-light-surface dark:bg-sys-dark-surface rounded-t-[32px] p-6 pb-12 animate-slide-up shadow-2xl text-sys-light-onSurface dark:text-sys-dark-onSurface" onClick={e => e.stopPropagation()}>
+                                    <div className="w-12 h-1.5 rounded-full bg-sys-light-outline/20 dark:bg-sys-dark-outline/20 mx-auto mb-8"></div>
+                                    {modal === 'god' && (
+                                        <div className="space-y-8">
+                                            <h3 className="text-xl font-bold flex items-center gap-3 text-sys-light-primary dark:text-sys-dark-primary"><Icon p={P.Edit} /> {t.god}</h3>
+                                            <div className="space-y-6 p-5 rounded-[20px] bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-sm font-medium opacity-80">{t.displayTime}</span>
+                                                    <div className="flex gap-2">
+                                                        <input type="number" placeholder="H" value={customH} onChange={e => setCustomH(e.target.value)} className="bg-transparent text-center outline-none w-16 border-b border-sys-light-outline/30 focus:border-sys-light-primary transition-colors font-mono"/>
+                                                        <span className="opacity-50">:</span>
+                                                        <input type="number" placeholder="M" value={customM} onChange={e => setCustomM(e.target.value)} className="bg-transparent text-center outline-none w-16 border-b border-sys-light-outline/30 focus:border-sys-light-primary transition-colors font-mono"/>
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-sm font-medium opacity-80">{t.firstTime}</span>
+                                                    <input type="time" value={pickup} onChange={e => setPickup(e.target.value)} className="bg-transparent outline-none border-b border-sys-light-outline/30 focus:border-sys-light-primary transition-colors font-mono"/>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-5 px-2">
+                                                {data.map((d, i) => (
+                                                    <div key={i} className="flex items-center gap-4">
+                                                        <span className={`w-8 text-xs font-bold ${i > todayIdx ? 'opacity-30' : 'opacity-80'}`}>{DAYS[i]}</span>
+                                                        <input type="range" min="0" max="24" step="0.1" value={d.h} disabled={i > todayIdx} onChange={(e) => { const nd = [...data]; nd[i].h = parseFloat(e.target.value); setData(nd); }} className={i > todayIdx ? 'opacity-30 cursor-not-allowed' : ''} />
+                                                        <span className={`w-10 text-xs font-mono text-right ${i > todayIdx ? 'opacity-30' : 'opacity-70'}`}>{d.h.toFixed(1)}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {modal === 'img' && (
+                                        <div className="space-y-6">
+                                            <h3 className="text-xl font-bold">{t.bg}</h3>
+                                            <input type="text" value={bg} onChange={e => setBg(e.target.value)} placeholder={t.urlPlaceholder} className="w-full p-4 rounded-xl bg-sys-light-surfaceContainerHigh dark:bg-sys-dark-surfaceContainerHigh outline-none focus:ring-2 focus:ring-sys-light-primary transition-all"/>
+                                            <button onClick={() => setModal(null)} className="w-full py-4 rounded-full bg-sys-light-primary dark:bg-sys-dark-primary text-sys-light-onPrimary dark:text-sys-dark-onPrimary font-bold text-lg shadow-lg active:scale-95 transition-transform">{t.save}</button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
